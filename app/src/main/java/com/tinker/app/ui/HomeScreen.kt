@@ -3,11 +3,16 @@ package com.tinker.app.ui
 import android.Manifest
 import android.annotation.SuppressLint
 import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Build
+import android.os.PowerManager
+import android.provider.Settings
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -36,10 +41,31 @@ import com.google.android.gms.tasks.CancellationTokenSource
 import com.tinker.app.data.Rule
 import com.tinker.app.data.RuleStore
 import com.tinker.app.geofence.GeofenceManager
+import com.tinker.app.service.WatchService
 import com.tinker.app.ui.theme.AppTheme
 
 private fun granted(context: Context, perm: String) =
     ContextCompat.checkSelfPermission(context, perm) == PackageManager.PERMISSION_GRANTED
+
+/** Ask to exempt the app from Doze so geofence delivery isn't delayed or dropped. */
+private fun requestBatteryExemption(context: Context) {
+    val pm = context.getSystemService(PowerManager::class.java)
+    if (pm.isIgnoringBatteryOptimizations(context.packageName)) return
+    runCatching {
+        context.startActivity(
+            Intent(
+                Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS,
+                Uri.parse("package:${context.packageName}"),
+            )
+        )
+    }
+}
+
+private fun openAppSettings(context: Context) {
+    context.startActivity(
+        Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:${context.packageName}"))
+    )
+}
 
 @SuppressLint("MissingPermission")
 private fun fetchLocation(context: Context, onResult: (Double, Double) -> Unit) {
@@ -66,6 +92,8 @@ fun HomeScreen() {
     fun arm() {
         store.save(Rule(phone.trim(), message, lat, lng, radius, enabled = true, hasLocation = true))
         GeofenceManager.register(context, lat, lng, radius)
+        WatchService.start(context)
+        requestBatteryExemption(context)
         enabled = true
         status = "Armed — will text when you enter this area."
     }
@@ -73,6 +101,7 @@ fun HomeScreen() {
     fun disarm() {
         store.save(Rule(phone.trim(), message, lat, lng, radius, enabled = false, hasLocation = hasLocation))
         GeofenceManager.unregister(context)
+        WatchService.stop(context)
         enabled = false
         status = "Disabled."
     }
@@ -183,6 +212,14 @@ fun HomeScreen() {
                     )
                 }
                 Toggle(enabled) { onToggle(it) }
+            }
+            if (enabled) {
+                Spacer(Modifier.height(AppTheme.space.sm))
+                AppText(
+                    "Not arriving? Set Tinker to Unrestricted in battery settings →",
+                    AppTheme.type.label, c.muted,
+                    Modifier.clickable { openAppSettings(context) },
+                )
             }
         }
 
