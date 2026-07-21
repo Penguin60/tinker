@@ -1,4 +1,4 @@
-package com.perimeter.app.sms
+package com.tinker.app.sms
 
 import android.annotation.SuppressLint
 import android.app.NotificationChannel
@@ -9,7 +9,7 @@ import android.telephony.SmsManager
 import androidx.core.app.NotificationCompat
 
 object SmsSender {
-    private const val CHANNEL_ID = "perimeter_status"
+    private const val CHANNEL_ID = "tinker_status"
 
     @SuppressLint("MissingPermission")
     fun send(context: Context, phone: String, message: String) {

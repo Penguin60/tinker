@@ -1,4 +1,4 @@
-package com.perimeter.app.data
+package com.tinker.app.data
 
 import android.content.Context
 import androidx.core.content.edit
@@ -18,7 +18,7 @@ data class Rule(
 
 /** Persists the single rule and exposes it as state. Shared so the receiver and UI read the same store. */
 class RuleStore private constructor(context: Context) {
-    private val prefs = context.applicationContext.getSharedPreferences("perimeter", Context.MODE_PRIVATE)
+    private val prefs = context.applicationContext.getSharedPreferences("tinker", Context.MODE_PRIVATE)
     private val _rule = MutableStateFlow(load())
     val rule: StateFlow<Rule> = _rule.asStateFlow()
 

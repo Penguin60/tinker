@@ -1,4 +1,4 @@
-package com.perimeter.app.ui
+package com.tinker.app.ui
 
 import android.Manifest
 import android.annotation.SuppressLint
@@ -33,10 +33,10 @@ import androidx.core.content.ContextCompat
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
 import com.google.android.gms.tasks.CancellationTokenSource
-import com.perimeter.app.data.Rule
-import com.perimeter.app.data.RuleStore
-import com.perimeter.app.geofence.GeofenceManager
-import com.perimeter.app.ui.theme.AppTheme
+import com.tinker.app.data.Rule
+import com.tinker.app.data.RuleStore
+import com.tinker.app.geofence.GeofenceManager
+import com.tinker.app.ui.theme.AppTheme
 
 private fun granted(context: Context, perm: String) =
     ContextCompat.checkSelfPermission(context, perm) == PackageManager.PERMISSION_GRANTED
@@ -140,7 +140,7 @@ fun HomeScreen() {
             .padding(AppTheme.space.md),
         verticalArrangement = Arrangement.spacedBy(AppTheme.space.md),
     ) {
-        AppText("Perimeter", AppTheme.type.title)
+        AppText("Tinker", AppTheme.type.title)
         AppText("Text a contact when you arrive somewhere.", color = c.muted)
 
         LabeledField("Phone number", phone, { phone = it }, "+1 555 123 4567", KeyboardType.Phone)

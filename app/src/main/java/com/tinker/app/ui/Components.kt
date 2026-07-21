@@ -1,4 +1,4 @@
-package com.perimeter.app.ui
+package com.tinker.app.ui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -27,7 +27,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import com.perimeter.app.ui.theme.AppTheme
+import com.tinker.app.ui.theme.AppTheme
 
 @Composable
 fun AppText(

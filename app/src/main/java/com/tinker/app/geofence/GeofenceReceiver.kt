@@ -1,12 +1,12 @@
-package com.perimeter.app.geofence
+package com.tinker.app.geofence
 
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import com.google.android.gms.location.Geofence
 import com.google.android.gms.location.GeofencingEvent
-import com.perimeter.app.data.RuleStore
-import com.perimeter.app.sms.SmsSender
+import com.tinker.app.data.RuleStore
+import com.tinker.app.sms.SmsSender
 
 class GeofenceReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {

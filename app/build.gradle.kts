@@ -5,11 +5,11 @@ plugins {
 }
 
 android {
-    namespace = "com.perimeter.app"
+    namespace = "com.tinker.app"
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "com.perimeter.app"
+        applicationId = "com.tinker.app"
         minSdk = 26
         targetSdk = 34
         versionCode = 1

@@ -13,5 +13,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "Perimeter"
+rootProject.name = "Tinker"
 include(":app")

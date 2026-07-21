@@ -1,4 +1,4 @@
-package com.perimeter.app.geofence
+package com.tinker.app.geofence
 
 import android.annotation.SuppressLint
 import android.app.PendingIntent
@@ -10,7 +10,7 @@ import com.google.android.gms.location.GeofencingRequest
 import com.google.android.gms.location.LocationServices
 
 object GeofenceManager {
-    const val ID = "perimeter_geofence"
+    const val ID = "tinker_geofence"
 
     private fun client(context: Context): GeofencingClient =
         LocationServices.getGeofencingClient(context.applicationContext)

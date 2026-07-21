@@ -1,4 +1,4 @@
-package com.perimeter.app.ui.theme
+package com.tinker.app.ui.theme
 
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.Composable
