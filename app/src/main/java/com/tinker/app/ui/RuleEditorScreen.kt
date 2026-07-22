@@ -2,6 +2,7 @@ package com.tinker.app.ui
 
 import android.content.Intent
 import android.provider.ContactsContract
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Canvas
@@ -156,6 +157,8 @@ fun RuleEditorScreen(rule: Rule, onClose: () -> Unit) {
         )
         return
     }
+
+    BackHandler { onClose() }
 
     val c = AppTheme.colors
     Column(

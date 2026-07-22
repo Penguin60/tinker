@@ -7,6 +7,7 @@ import android.os.Looper
 import android.webkit.JavascriptInterface
 import android.webkit.WebView
 import android.webkit.WebViewClient
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
@@ -109,6 +110,8 @@ fun MapPickerScreen(
     onConfirm: (Double, Double, Float) -> Unit,
     onCancel: () -> Unit,
 ) {
+    BackHandler { onCancel() }
+
     val context = LocalContext.current
     val mainHandler = remember { Handler(Looper.getMainLooper()) }
     val startLat = if (hasInitial) initialLat else 20.0
