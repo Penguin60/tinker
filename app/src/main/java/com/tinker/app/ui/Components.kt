@@ -108,7 +108,7 @@ fun LabeledField(
 
 /** Primary CTA with a tactile "key" that presses down onto its darker edge. */
 @Composable
-fun PrimaryButton(text: String, onClick: () -> Unit, enabled: Boolean = true, modifier: Modifier = Modifier) {
+fun PrimaryButton(text: String, modifier: Modifier = Modifier, enabled: Boolean = true, onClick: () -> Unit) {
     val c = AppTheme.colors
     val interaction = remember { MutableInteractionSource() }
     val pressed by interaction.collectIsPressedAsState()

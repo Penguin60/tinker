@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <link rel="stylesheet" href="leaflet.css" />
+  <script src="leaflet.js"></script>
+  <style>
+    html, body { margin: 0; padding: 0; }
+    /* Height is set from window.innerHeight in JS — CSS height:100% doesn't resolve in a WebView. */
+    #map { width: 100vw; background: #EEEFE9; }
+    #pin {
+      position: fixed; left: 50%; top: 50%;
+      transform: translate(-50%, -100%);
+      z-index: 500; pointer-events: none;
+      font-size: 34px; line-height: 1;
+      filter: drop-shadow(0 2px 2px rgba(0,0,0,0.3));
+    }
+    .leaflet-control-attribution { font-size: 10px; background: rgba(255,255,255,0.7); }
+    .leaflet-control-zoom { display: none; }
+  </style>
+</head>
+<body>
+  <div id="map"></div>
+  <div id="pin">📍</div>
+  <script>
+    let map, circle;
+
+    function fit() { document.getElementById('map').style.height = window.innerHeight + 'px'; }
+
+    function init(lat, lng, r, zoom) {
+      fit();
+      map = L.map('map', { zoomControl: false, attributionControl: true }).setView([lat, lng], zoom);
+      L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19, attribution: '&copy; OpenStreetMap'
+      }).addTo(map);
+      circle = L.circle([lat, lng], {
+        radius: r, color: '#F54E00', weight: 2, fillColor: '#F54E00', fillOpacity: 0.12
+      }).addTo(map);
+      map.on('move', function () { circle.setLatLng(map.getCenter()); });
+      map.on('moveend', function () {
+        const c = map.getCenter();
+        if (window.Android) Android.onCenter(c.lat, c.lng);
+      });
+      window.addEventListener('resize', function () { fit(); map.invalidateSize(); });
+      setTimeout(function () { fit(); map.invalidateSize(); }, 300);
+    }
+
+    function setRadius(r) { if (circle) circle.setRadius(r); }
+
+    function recenter(lat, lng) {
+      if (!map) return;
+      map.setView([lat, lng], 16);
+      if (window.Android) Android.onCenter(lat, lng);
+    }
+  </script>
+</body>
+</html>

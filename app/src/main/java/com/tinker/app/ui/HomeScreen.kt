@@ -50,7 +50,7 @@ import com.tinker.app.geofence.GeofenceManager
 import com.tinker.app.service.WatchService
 import com.tinker.app.ui.theme.AppTheme
 
-private fun granted(context: Context, perm: String) =
+internal fun granted(context: Context, perm: String) =
     ContextCompat.checkSelfPermission(context, perm) == PackageManager.PERMISSION_GRANTED
 
 /** Ask to exempt the app from Doze so geofence delivery isn't delayed or dropped. */
@@ -74,7 +74,7 @@ private fun openAppSettings(context: Context) {
 }
 
 @SuppressLint("MissingPermission")
-private fun fetchLocation(context: Context, onResult: (Double, Double) -> Unit) {
+internal fun fetchLocation(context: Context, onResult: (Double, Double) -> Unit) {
     LocationServices.getFusedLocationProviderClient(context)
         .getCurrentLocation(Priority.PRIORITY_HIGH_ACCURACY, CancellationTokenSource().token)
         .addOnSuccessListener { loc -> if (loc != null) onResult(loc.latitude, loc.longitude) }
@@ -94,6 +94,7 @@ fun HomeScreen() {
     var radius by remember { mutableStateOf(saved.radius) }
     var enabled by remember { mutableStateOf(saved.enabled) }
     var status by remember { mutableStateOf("") }
+    var showMap by remember { mutableStateOf(false) }
 
     fun arm() {
         store.save(Rule(phone.trim(), message, lat, lng, radius, enabled = true, hasLocation = true))
@@ -132,22 +133,6 @@ fun HomeScreen() {
         } else arm()
     }
 
-    val locationLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.RequestMultiplePermissions()
-    ) {
-        if (granted(context, Manifest.permission.ACCESS_FINE_LOCATION))
-            fetchLocation(context) { la, lo -> lat = la; lng = lo; hasLocation = true; status = "Location set." }
-        else status = "Location permission is required."
-    }
-
-    fun useCurrentLocation() {
-        if (granted(context, Manifest.permission.ACCESS_FINE_LOCATION))
-            fetchLocation(context) { la, lo -> lat = la; lng = lo; hasLocation = true; status = "Location set." }
-        else locationLauncher.launch(
-            arrayOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION)
-        )
-    }
-
     fun onToggle(want: Boolean) {
         if (!want) return disarm()
         when {
@@ -163,6 +148,21 @@ fun HomeScreen() {
                 armLauncher.launch(perms.toTypedArray())
             }
         }
+    }
+
+    if (showMap) {
+        MapPickerScreen(
+            initialLat = lat,
+            initialLng = lng,
+            initialRadius = radius,
+            hasInitial = hasLocation,
+            onConfirm = { la, lo, r ->
+                lat = la; lng = lo; radius = r; hasLocation = true; showMap = false
+                status = "Location set."
+            },
+            onCancel = { showMap = false },
+        )
+        return
     }
 
     val c = AppTheme.colors
@@ -189,12 +189,12 @@ fun HomeScreen() {
             Overline("Location")
             Spacer(Modifier.height(AppTheme.space.sm))
             AppText(
-                if (hasLocation) "%.5f, %.5f".format(lat, lng) else "No spot picked yet",
+                if (hasLocation) String.format(java.util.Locale.US, "%.5f, %.5f", lat, lng) else "No spot picked yet",
                 AppTheme.type.heading,
                 if (hasLocation) c.ink else c.mute,
             )
             Spacer(Modifier.height(AppTheme.space.md))
-            PrimaryButton(if (hasLocation) "Update to current location" else "Use my current location", ::useCurrentLocation)
+            PrimaryButton(if (hasLocation) "Change location" else "Pick on map") { showMap = true }
 
             Spacer(Modifier.height(AppTheme.space.lg))
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
