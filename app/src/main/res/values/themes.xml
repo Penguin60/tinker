@@ -1,3 +1,5 @@
 <resources>
-    <style name="Theme.Tinker" parent="android:Theme.DeviceDefault.NoActionBar" />
+    <style name="Theme.Tinker" parent="android:Theme.DeviceDefault.Light.NoActionBar">
+        <item name="android:windowBackground">@color/canvas</item>
+    </style>
 </resources>

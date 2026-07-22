@@ -14,6 +14,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -21,8 +22,12 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBarsPadding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -31,6 +36,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
@@ -163,37 +169,42 @@ fun HomeScreen() {
     Column(
         Modifier
             .fillMaxSize()
-            .background(c.background)
+            .background(c.canvas)
             .systemBarsPadding()
             .verticalScroll(rememberScrollState())
             .padding(AppTheme.space.md),
         verticalArrangement = Arrangement.spacedBy(AppTheme.space.md),
     ) {
-        AppText("Tinker", AppTheme.type.title)
-        AppText("Text a contact when you arrive somewhere.", color = c.muted)
+        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+            AppText("Tinker", AppTheme.type.title)
+            Spacer(Modifier.weight(1f))
+            if (enabled) LiveBadge()
+        }
+        AppText("Text someone the second you arrive somewhere.", color = c.body)
 
         LabeledField("Phone number", phone, { phone = it }, "+1 555 123 4567", KeyboardType.Phone)
         LabeledField("Message", message, { message = it }, "I'm here!", singleLine = false, minHeight = 72.dp)
 
         SectionCard {
-            AppText("Location", AppTheme.type.label, c.muted)
+            Overline("Location")
             Spacer(Modifier.height(AppTheme.space.sm))
             AppText(
-                if (hasLocation) "%.5f, %.5f".format(lat, lng) else "No location set",
-                color = if (hasLocation) c.onSurface else c.muted,
+                if (hasLocation) "%.5f, %.5f".format(lat, lng) else "No spot picked yet",
+                AppTheme.type.heading,
+                if (hasLocation) c.ink else c.mute,
             )
             Spacer(Modifier.height(AppTheme.space.md))
-            PrimaryButton("Use my current location", ::useCurrentLocation)
+            PrimaryButton(if (hasLocation) "Update to current location" else "Use my current location", ::useCurrentLocation)
 
-            Spacer(Modifier.height(AppTheme.space.md))
-            AppText("Radius: ${radius.toInt()} m", AppTheme.type.label, c.muted)
-            Spacer(Modifier.height(AppTheme.space.sm))
-            Row(
-                Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(AppTheme.space.md),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
+            Spacer(Modifier.height(AppTheme.space.lg))
+            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                Column(Modifier.weight(1f)) {
+                    Overline("Radius")
+                    Spacer(Modifier.height(AppTheme.space.xs))
+                    AppText("${radius.toInt()} m", AppTheme.type.heading, c.ink)
+                }
                 SmallButton("–") { radius = (radius - 50f).coerceAtLeast(50f) }
+                Spacer(Modifier.width(AppTheme.space.sm))
                 SmallButton("+") { radius = (radius + 50f).coerceAtMost(2000f) }
             }
         }
@@ -204,25 +215,35 @@ fun HomeScreen() {
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Column(Modifier.fillMaxWidth(0.8f)) {
-                    AppText("Enabled")
-                    AppText(
-                        if (enabled) "Watching for arrival" else "Off",
-                        AppTheme.type.label, c.muted,
-                    )
+                Column(Modifier.weight(1f)) {
+                    AppText("Arm it", AppTheme.type.heading)
+                    AppText(if (enabled) "On watch — I've got it from here." else "Off duty", color = c.mute)
                 }
                 Toggle(enabled) { onToggle(it) }
             }
             if (enabled) {
-                Spacer(Modifier.height(AppTheme.space.sm))
+                Spacer(Modifier.height(AppTheme.space.md))
                 AppText(
-                    "Not arriving? Set Tinker to Unrestricted in battery settings →",
-                    AppTheme.type.label, c.muted,
+                    "Texts not landing? Tap to set Tinker → Unrestricted in battery settings.",
+                    AppTheme.type.caption, c.mute,
                     Modifier.clickable { openAppSettings(context) },
                 )
             }
         }
 
-        if (status.isNotEmpty()) AppText(status, AppTheme.type.label, c.accent)
+        if (status.isNotEmpty()) AppText(status, AppTheme.type.caption, c.body)
+    }
+}
+
+@Composable
+private fun LiveBadge() {
+    val c = AppTheme.colors
+    Row(
+        Modifier.clip(RoundedCornerShape(999.dp)).background(c.liveSoft).padding(horizontal = 10.dp, vertical = 6.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Box(Modifier.size(7.dp).clip(CircleShape).background(c.live))
+        Spacer(Modifier.width(6.dp))
+        AppText("LIVE", AppTheme.type.overline, c.live)
     }
 }
