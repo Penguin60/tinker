@@ -12,6 +12,7 @@ import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -19,6 +20,7 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicText
@@ -43,6 +45,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
@@ -85,10 +88,28 @@ fun LabeledField(
     keyboardType: KeyboardType = KeyboardType.Text,
     singleLine: Boolean = true,
     minHeight: Dp = 0.dp,
+    visualTransformation: VisualTransformation = VisualTransformation.None,
+    trailing: (@Composable () -> Unit)? = null,
 ) {
     val c = AppTheme.colors
     var focused by remember { mutableStateOf(false) }
     val shape = RoundedCornerShape(AppTheme.radius.sm)
+    val field: @Composable (Modifier) -> Unit = { m ->
+        BasicTextField(
+            value = value,
+            onValueChange = onValueChange,
+            singleLine = singleLine,
+            textStyle = AppTheme.type.body.merge(TextStyle(color = c.ink)),
+            cursorBrush = SolidColor(c.primary),
+            keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
+            visualTransformation = visualTransformation,
+            modifier = m.onFocusChanged { focused = it.isFocused },
+            decorationBox = { inner ->
+                if (value.isEmpty()) AppText(placeholder, color = c.mute)
+                inner()
+            },
+        )
+    }
     Column(Modifier.fillMaxWidth()) {
         Overline(label)
         Spacer(Modifier.height(AppTheme.space.xs))
@@ -101,19 +122,12 @@ fun LabeledField(
                 .padding(horizontal = 14.dp, vertical = 13.dp)
                 .heightIn(min = minHeight)
         ) {
-            BasicTextField(
-                value = value,
-                onValueChange = onValueChange,
-                singleLine = singleLine,
-                textStyle = AppTheme.type.body.merge(TextStyle(color = c.ink)),
-                cursorBrush = SolidColor(c.primary),
-                keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
-                modifier = Modifier.fillMaxWidth().onFocusChanged { focused = it.isFocused },
-                decorationBox = { inner ->
-                    if (value.isEmpty()) AppText(placeholder, color = c.mute)
-                    inner()
-                },
-            )
+            if (trailing == null) field(Modifier.fillMaxWidth())
+            else Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                field(Modifier.weight(1f))
+                Spacer(Modifier.width(AppTheme.space.sm))
+                trailing()
+            }
         }
     }
 }

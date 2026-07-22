@@ -198,12 +198,15 @@ private fun RuleCard(rule: Rule, onEdit: () -> Unit, onToggle: (Boolean) -> Unit
     val detail = when {
         rule.phone.isBlank() -> "Needs a phone number"
         !rule.hasLocation -> "Needs a location"
-        else -> "→ ${rule.phone} · ${rule.radius.toInt()} m"
+        else -> "→ ${formatPhone(rule.phone)} · ${rule.radius.toInt()} m"
     }
     SectionCard(Modifier.clickable { onEdit() }) {
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             Column(Modifier.weight(1f)) {
-                AppText(rule.name.ifBlank { rule.phone.ifBlank { "Untitled automation" } }, AppTheme.type.heading)
+                AppText(
+                    rule.name.ifBlank { formatPhone(rule.phone).ifBlank { "Untitled automation" } },
+                    AppTheme.type.heading,
+                )
                 Spacer(Modifier.height(AppTheme.space.xs))
                 AppText(detail, AppTheme.type.caption, c.mute)
             }
