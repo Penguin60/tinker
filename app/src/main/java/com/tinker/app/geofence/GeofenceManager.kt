@@ -8,13 +8,14 @@ import com.google.android.gms.location.Geofence
 import com.google.android.gms.location.GeofencingClient
 import com.google.android.gms.location.GeofencingRequest
 import com.google.android.gms.location.LocationServices
+import com.tinker.app.data.Rule
 
 object GeofenceManager {
-    const val ID = "tinker_geofence"
 
     private fun client(context: Context): GeofencingClient =
         LocationServices.getGeofencingClient(context.applicationContext)
 
+    /** One shared intent for every geofence; the receiver tells them apart by request id. */
     private fun pendingIntent(context: Context): PendingIntent {
         val intent = Intent(context.applicationContext, GeofenceReceiver::class.java)
         val flags = PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_MUTABLE
@@ -22,10 +23,10 @@ object GeofenceManager {
     }
 
     @SuppressLint("MissingPermission")
-    fun register(context: Context, lat: Double, lng: Double, radius: Float) {
+    fun register(context: Context, rule: Rule) {
         val geofence = Geofence.Builder()
-            .setRequestId(ID)
-            .setCircularRegion(lat, lng, radius)
+            .setRequestId(rule.id)
+            .setCircularRegion(rule.lat, rule.lng, rule.radius)
             .setExpirationDuration(Geofence.NEVER_EXPIRE)
             .setTransitionTypes(Geofence.GEOFENCE_TRANSITION_ENTER)
             .build()
@@ -36,7 +37,7 @@ object GeofenceManager {
         client(context).addGeofences(request, pendingIntent(context))
     }
 
-    fun unregister(context: Context) {
-        client(context).removeGeofences(listOf(ID))
+    fun unregister(context: Context, id: String) {
+        client(context).removeGeofences(listOf(id))
     }
 }

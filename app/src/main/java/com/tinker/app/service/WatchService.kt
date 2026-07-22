@@ -12,6 +12,7 @@ import android.os.IBinder
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
 import com.tinker.app.MainActivity
+import com.tinker.app.data.RuleStore
 
 /**
  * A minimal foreground service. It does no work itself — Play Services holds the geofence — but
@@ -37,10 +38,11 @@ class WatchService : Service() {
             this, 0, Intent(this, MainActivity::class.java),
             PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
         )
+        val armed = RuleStore.get(this).rules.value.count { it.enabled }
         return NotificationCompat.Builder(this, CHANNEL_ID)
             .setSmallIcon(android.R.drawable.ic_menu_mylocation)
             .setContentTitle("Tinker is armed")
-            .setContentText("Watching for arrival at your location.")
+            .setContentText(if (armed == 1) "Watching 1 location." else "Watching $armed locations.")
             .setContentIntent(open)
             .setOngoing(true)
             .build()

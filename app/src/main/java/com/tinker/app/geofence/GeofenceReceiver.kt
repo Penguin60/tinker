@@ -14,11 +14,13 @@ class GeofenceReceiver : BroadcastReceiver() {
         if (event.hasError()) return
         if (event.geofenceTransition != Geofence.GEOFENCE_TRANSITION_ENTER) return
 
-        val rule = RuleStore.get(context).rule.value
-        if (!rule.enabled || rule.phone.isBlank()) return
-
-        runCatching { SmsSender.send(context, rule.phone, rule.message) }
-            .onSuccess { SmsSender.notify(context, "Message sent", "To ${rule.phone}") }
-            .onFailure { SmsSender.notify(context, "Send failed", it.message ?: "Unknown error") }
+        val ids = event.triggeringGeofences?.map { it.requestId } ?: return
+        RuleStore.get(context).rules.value
+            .filter { it.id in ids && it.enabled && it.phone.isNotBlank() }
+            .forEach { rule ->
+                runCatching { SmsSender.send(context, rule.phone, rule.message) }
+                    .onSuccess { SmsSender.notify(context, "Message sent", "To ${rule.phone}") }
+                    .onFailure { SmsSender.notify(context, "Send failed", it.message ?: "Unknown error") }
+            }
     }
 }

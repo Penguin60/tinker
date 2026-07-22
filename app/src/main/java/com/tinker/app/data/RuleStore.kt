@@ -5,8 +5,13 @@ import androidx.core.content.edit
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import org.json.JSONArray
+import org.json.JSONObject
+import java.util.UUID
 
 data class Rule(
+    val id: String = UUID.randomUUID().toString(),
+    val name: String = "",
     val phone: String = "",
     val message: String = "",
     val lat: Double = 0.0,
@@ -16,33 +21,54 @@ data class Rule(
     val hasLocation: Boolean = false,
 )
 
-/** Persists the single rule and exposes it as state. Shared so the receiver and UI read the same store. */
+/** Persists the rules and exposes them as state. Shared so the receivers and UI read the same store. */
 class RuleStore private constructor(context: Context) {
     private val prefs = context.applicationContext.getSharedPreferences("tinker", Context.MODE_PRIVATE)
-    private val _rule = MutableStateFlow(load())
-    val rule: StateFlow<Rule> = _rule.asStateFlow()
+    private val _rules = MutableStateFlow(load())
+    val rules: StateFlow<List<Rule>> = _rules.asStateFlow()
 
-    fun save(rule: Rule) {
-        prefs.edit {
-            putString("phone", rule.phone)
-            putString("message", rule.message)
-            putLong("lat", java.lang.Double.doubleToRawLongBits(rule.lat))
-            putLong("lng", java.lang.Double.doubleToRawLongBits(rule.lng))
-            putFloat("radius", rule.radius)
-            putBoolean("enabled", rule.enabled)
-            putBoolean("hasLocation", rule.hasLocation)
-        }
-        _rule.value = rule
+    fun upsert(rule: Rule) {
+        val list = _rules.value.toMutableList()
+        val i = list.indexOfFirst { it.id == rule.id }
+        if (i >= 0) list[i] = rule else list += rule
+        persist(list)
     }
 
-    private fun load() = Rule(
-        phone = prefs.getString("phone", "") ?: "",
-        message = prefs.getString("message", "") ?: "",
-        lat = java.lang.Double.longBitsToDouble(prefs.getLong("lat", 0)),
-        lng = java.lang.Double.longBitsToDouble(prefs.getLong("lng", 0)),
-        radius = prefs.getFloat("radius", 150f),
-        enabled = prefs.getBoolean("enabled", false),
-        hasLocation = prefs.getBoolean("hasLocation", false),
+    fun delete(id: String) = persist(_rules.value.filterNot { it.id == id })
+
+    private fun persist(list: List<Rule>) {
+        prefs.edit { putString("rules", JSONArray(list.map(::toJson)).toString()) }
+        _rules.value = list
+    }
+
+    private fun load(): List<Rule> {
+        val raw = prefs.getString("rules", null) ?: return emptyList()
+        val arr = JSONArray(raw)
+        return (0 until arr.length()).map { fromJson(arr.getJSONObject(it)) }
+    }
+
+    private fun toJson(r: Rule) = JSONObject().apply {
+        put("id", r.id)
+        put("name", r.name)
+        put("phone", r.phone)
+        put("message", r.message)
+        put("lat", r.lat)
+        put("lng", r.lng)
+        put("radius", r.radius.toDouble())
+        put("enabled", r.enabled)
+        put("hasLocation", r.hasLocation)
+    }
+
+    private fun fromJson(o: JSONObject) = Rule(
+        id = o.getString("id"),
+        name = o.getString("name"),
+        phone = o.getString("phone"),
+        message = o.getString("message"),
+        lat = o.getDouble("lat"),
+        lng = o.getDouble("lng"),
+        radius = o.getDouble("radius").toFloat(),
+        enabled = o.getBoolean("enabled"),
+        hasLocation = o.getBoolean("hasLocation"),
     )
 
     companion object {

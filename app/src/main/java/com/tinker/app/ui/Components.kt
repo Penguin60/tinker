@@ -51,7 +51,7 @@ fun Overline(text: String, color: Color = AppTheme.colors.mute) =
     AppText(text.uppercase(), AppTheme.type.overline, color)
 
 @Composable
-fun SectionCard(content: @Composable ColumnScope.() -> Unit) {
+fun SectionCard(modifier: Modifier = Modifier, content: @Composable ColumnScope.() -> Unit) {
     val c = AppTheme.colors
     Column(
         Modifier
@@ -59,6 +59,7 @@ fun SectionCard(content: @Composable ColumnScope.() -> Unit) {
             .clip(RoundedCornerShape(AppTheme.radius.md))
             .background(c.surface)
             .border(1.dp, c.hairline, RoundedCornerShape(AppTheme.radius.md))
+            .then(modifier)
             .padding(AppTheme.space.md),
         content = content,
     )
@@ -135,7 +136,7 @@ fun PrimaryButton(text: String, modifier: Modifier = Modifier, enabled: Boolean 
 }
 
 @Composable
-fun SmallButton(text: String, onClick: () -> Unit) {
+fun SmallButton(onClick: () -> Unit, content: @Composable () -> Unit) {
     val c = AppTheme.colors
     val shape = RoundedCornerShape(AppTheme.radius.sm)
     Box(
@@ -146,8 +147,12 @@ fun SmallButton(text: String, onClick: () -> Unit) {
             .border(1.dp, c.hairline, shape)
             .clickable { onClick() },
         contentAlignment = Alignment.Center,
-    ) { AppText(text, AppTheme.type.heading, c.ink) }
+    ) { content() }
 }
+
+@Composable
+fun SmallButton(text: String, onClick: () -> Unit) =
+    SmallButton(onClick) { AppText(text, AppTheme.type.heading, AppTheme.colors.ink) }
 
 @Composable
 fun Toggle(checked: Boolean, onCheckedChange: (Boolean) -> Unit) {
