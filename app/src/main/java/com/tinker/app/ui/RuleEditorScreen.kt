@@ -110,18 +110,6 @@ fun RuleEditorScreen(rule: Rule, onClose: () -> Unit) {
             )
             Spacer(Modifier.height(AppTheme.space.md))
             PrimaryButton(if (hasLocation) "Change location" else "Pick on map") { showMap = true }
-
-            Spacer(Modifier.height(AppTheme.space.lg))
-            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                Column(Modifier.weight(1f)) {
-                    Overline("Radius")
-                    Spacer(Modifier.height(AppTheme.space.xs))
-                    AppText("${radius.toInt()} m", AppTheme.type.heading, c.ink)
-                }
-                SmallButton("–") { radius = (radius - 50f).coerceAtLeast(50f) }
-                Spacer(Modifier.width(AppTheme.space.sm))
-                SmallButton("+") { radius = (radius + 50f).coerceAtMost(2000f) }
-            }
         }
 
         PrimaryButton("Save") { save() }

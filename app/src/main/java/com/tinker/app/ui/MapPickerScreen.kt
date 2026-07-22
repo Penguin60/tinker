@@ -210,15 +210,12 @@ fun MapPickerScreen(
         ) {
             SectionCard {
                 Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                    Column(Modifier.weight(1f)) {
-                        Overline("Radius")
-                        Spacer(Modifier.height(AppTheme.space.xs))
-                        AppText("${radius.toInt()} m", AppTheme.type.heading, c.ink)
-                    }
-                    SmallButton("–") { radius = (radius - 50f).coerceAtLeast(50f) }
-                    Spacer(Modifier.width(AppTheme.space.sm))
-                    SmallButton("+") { radius = (radius + 50f).coerceAtMost(2000f) }
+                    Overline("Radius")
+                    Spacer(Modifier.weight(1f))
+                    AppText("${radius.toInt()} m", AppTheme.type.heading, c.ink)
                 }
+                Spacer(Modifier.height(AppTheme.space.sm))
+                Slider(radius, 50f..2000f, step = 10f) { radius = it }
             }
             PrimaryButton("Drop the pin here") { onConfirm(center.first, center.second, radius) }
         }

@@ -4,6 +4,9 @@ import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.foundation.gestures.drag
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Box
@@ -25,6 +28,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -32,11 +36,18 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import com.tinker.app.ui.theme.AppTheme
+import kotlin.math.roundToInt
 
 @Composable
 fun AppText(
@@ -153,6 +164,59 @@ fun SmallButton(onClick: () -> Unit, content: @Composable () -> Unit) {
 @Composable
 fun SmallButton(text: String, onClick: () -> Unit) =
     SmallButton(onClick) { AppText(text, AppTheme.type.heading, AppTheme.colors.ink) }
+
+/** Track is inset by half a thumb so the fill's edge always sits under the thumb's centre. */
+@Composable
+fun Slider(value: Float, range: ClosedFloatingPointRange<Float>, step: Float, onValueChange: (Float) -> Unit) {
+    val c = AppTheme.colors
+    val haptics = LocalHapticFeedback.current
+    val thumb = 24.dp
+    val thumbPx = with(LocalDensity.current) { thumb.toPx() }
+    var width by remember { mutableStateOf(0f) }
+    val span = range.endInclusive - range.start
+    val fraction = ((value - range.start) / span).coerceIn(0f, 1f)
+    // pointerInput(Unit) never restarts, so read the live value rather than the one it captured.
+    val current by rememberUpdatedState(value)
+
+    fun seek(x: Float) {
+        val raw = range.start + ((x - thumbPx / 2) / (width - thumbPx).coerceAtLeast(1f)).coerceIn(0f, 1f) * span
+        val snapped = (raw / step).roundToInt() * step
+        if (snapped != current) {
+            haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+            onValueChange(snapped)
+        }
+    }
+
+    Box(
+        Modifier
+            .fillMaxWidth()
+            .height(thumb)
+            .onSizeChanged { width = it.width.toFloat() }
+            // Consume from the down event on, or the map underneath claims the drag.
+            .pointerInput(Unit) {
+                awaitEachGesture {
+                    val down = awaitFirstDown()
+                    down.consume()
+                    seek(down.position.x)
+                    drag(down.id) { it.consume(); seek(it.position.x) }
+                }
+            },
+        contentAlignment = Alignment.CenterStart,
+    ) {
+        Box(Modifier.fillMaxWidth().padding(horizontal = thumb / 2), contentAlignment = Alignment.CenterStart) {
+            Box(Modifier.fillMaxWidth().height(6.dp).clip(CircleShape).background(c.surfaceSoft))
+            Box(Modifier.fillMaxWidth(fraction).height(6.dp).clip(CircleShape).background(c.primary))
+        }
+        Box(
+            Modifier
+                .offset { IntOffset((fraction * (width - thumbPx)).roundToInt(), 0) }
+                .size(thumb)
+                .clip(CircleShape)
+                .background(Color.White)
+                .border(2.dp, c.primaryEdge, CircleShape)
+        )
+    }
+}
 
 @Composable
 fun Toggle(checked: Boolean, onCheckedChange: (Boolean) -> Unit) {
